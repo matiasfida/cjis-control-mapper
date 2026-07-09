@@ -6,6 +6,7 @@ from langchain_core.documents import Document
 
 PDF_PATH = "data/source/CJIS_Security_Policy_v6-0_20241227.pdf"
 SECTION_PATTERN = re.compile(r"^\s*(\d+(?:\.\d+){1,5})\s+[A-Z]", flags=re.MULTILINE)
+CONTROL_PATTERN = re.compile(r"^\s*([A-Z]{2,4}-\d{1,2})\s+[A-Z]", flags=re.MULTILINE)
 APPENDIX_PATTERN = re.compile(r"^\s*([A-Z])-\d+\b", flags=re.MULTILINE)
 
 
@@ -19,9 +20,11 @@ def extract_pages(pdf_path: str) -> list[dict]:
 
 
 def find_section_headers(text: str) -> list[tuple[int, str]]:
-    """Detecta headers de sección numérica (5.x.y) y de apéndice (A-6, B-3, ...)."""
+    """Detecta headers de sección numérica (5.x.y), ID de control (AU-2, CP-1, ...) y apéndice (A-6, ...)."""
     headers = []
     for m in re.finditer(SECTION_PATTERN, text):
+        headers.append((m.start(), m.group(1)))
+    for m in re.finditer(CONTROL_PATTERN, text):
         headers.append((m.start(), m.group(1)))
     for m in re.finditer(APPENDIX_PATTERN, text):
         headers.append((m.start(), f"Appendix {m.group(1)}"))
