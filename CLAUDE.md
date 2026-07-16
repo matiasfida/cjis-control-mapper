@@ -42,8 +42,8 @@ En el borde exacto entre dos secciones/controles consecutivos, la asignación pu
 
 - [x] Ingesta (`ingest.py`) — funcionando y validada manualmente.
 - [x] Retrieval tool (`retrieval.py`) — funcionando, devuelve página + control + score.
-- [ ] README — pendiente.
-- [ ] Agente (`create_agent` de LangChain + `search_cjis_policy` como tool) — pendiente.
+- [x] README — hecho.
+- [x] Agente (`create_agent` de LangChain + `search_cjis_policy` como tool) — hecho, ver `agent.py`.
 - [ ] Eval set (15-20 casos manuales) — pendiente.
 
 ## System prompt de referencia para el agente (cuando se implemente)
