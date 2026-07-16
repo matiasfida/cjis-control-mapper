@@ -32,6 +32,8 @@ RAG que mapea eventos de auditoría a controles del CJIS Security Policy v6.0, c
 
 En el borde exacto entre dos secciones/controles consecutivos, la asignación puede quedar corrida (ej: un chunk que empieza justo donde arranca el header de la sección siguiente puede heredar la sección anterior). Validado en muestra manual: ~83% de precisión en la asignación de control ID, con el error acotado a bordes exactos. Página siempre confiable, sección/control no siempre exacto en el borde.
 
+**Query de `check_event.py` demasiado pobre para retrieval (detectado corriendo `eval.py`):** `_describe_event_for_search` arma queries tipo `"audit log event: login failed"` — muy cortas y genéricas. Contra el índice real, esto da Hit@5 de solo 25% (5/20 en `eval_set.py`), porque matchea el boilerplate de "policy and procedures" (AU-1, página 67) que se repite casi textual al inicio de cada familia de control, en vez del control específico. Confirmado que el índice/embeddings no son el problema: la misma búsqueda con frase más parecida a la prosa de la política (ej. `"unsuccessful login attempts account lockout"` en vez de `"audit log event: login failed"`) sí encuentra el control correcto (AC-7) en el top-3. Pendiente: mejorar `_describe_event_for_search` para generar descripciones más ricas antes de confiar en `candidate_controls` de `check_event.py`.
+
 ## Convenciones del proyecto
 
 - Windows + Git Bash (MINGW64). Activar venv con `source .venv/Scripts/activate`, no `.venv/bin/activate`.
@@ -44,7 +46,7 @@ En el borde exacto entre dos secciones/controles consecutivos, la asignación pu
 - [x] Retrieval tool (`retrieval.py`) — funcionando, devuelve página + control + score.
 - [x] README — hecho.
 - [x] Agente (`create_agent` de LangChain + `search_cjis_policy` como tool) — hecho, ver `agent.py`.
-- [ ] Eval set (15-20 casos manuales) — pendiente.
+- [x] Eval set (20 casos manuales) — hecho, ver `eval_set.py` (casos) y `eval.py` (runner). Página/control de cada caso verificado leyendo el PDF fuente directamente, no derivado de la metadata de `ingest.py`. Hit@5 actual: 25% (5/20) — ver hallazgo en el bug log de abajo.
 
 ## System prompt de referencia para el agente (cuando se implemente)
 

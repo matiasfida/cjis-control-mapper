@@ -1,0 +1,273 @@
+# Casos de eval manuales para medir la calidad del retrieval (find_candidate_controls).
+#
+# Cada caso es un evento de auditoría sintético + el control que el texto real de la
+# política asocia a ese tipo de evento. `expected_page` es la página donde arranca el
+# texto de control correspondiente, verificada leyendo el PDF fuente directamente
+# (no derivada de la metadata de ingest.py, para no validar el sistema contra sí mismo).
+#
+# No es una suite de compliance: mide si el retrieval encuentra el control correcto
+# entre los top-k resultados, nada más. Ver limitación de borde documentada en CLAUDE.md
+# (~83% de precisión) — algunos misses acá son esperables y ya conocidos.
+
+EVAL_CASES = [
+    {
+        "id": "eval-01",
+        "event": {
+            "eventId": "evt-101",
+            "userId": "jdoe",
+            "action": "LOGIN_FAILED",
+            "resource": None,
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AC-7",
+        "expected_page": 47,
+        "notes": "5 intentos fallidos consecutivos -> Unsuccessful Logon Attempts",
+    },
+    {
+        "id": "eval-02",
+        "event": {
+            "eventId": "evt-102",
+            "userId": "admin1",
+            "action": "ACCOUNT_CREATED",
+            "resource": "user:msmith",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AC-2",
+        "expected_page": 38,
+        "notes": "alta de cuenta sin aprobacion registrada -> Account Management",
+    },
+    {
+        "id": "eval-03",
+        "event": {
+            "eventId": "evt-103",
+            "userId": "jdoe",
+            "action": "SESSION_IDLE_TIMEOUT",
+            "resource": "workstation:ws-04",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AC-11",
+        "expected_page": 49,
+        "notes": "sesion sin lock tras 30 min de inactividad -> Device Lock",
+    },
+    {
+        "id": "eval-04",
+        "event": {
+            "eventId": "evt-104",
+            "userId": "jdoe",
+            "action": "LOGOUT",
+            "resource": "session:sess-88",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AC-12",
+        "expected_page": 49,
+        "notes": "sesion no terminada tras logout -> Session Termination",
+    },
+    {
+        "id": "eval-05",
+        "event": {
+            "eventId": "evt-105",
+            "userId": "vpnuser",
+            "action": "REMOTE_ACCESS_CONNECTED",
+            "resource": "vpn:gateway-1",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AC-17",
+        "expected_page": 51,
+        "notes": "conexion remota sin cifrado -> Remote Access (Protection of Confidentiality and Integrity Using Encryption)",
+    },
+    {
+        "id": "eval-06",
+        "event": {
+            "eventId": "evt-106",
+            "userId": "svc-logger",
+            "action": "AUDIT_RECORD_MISSING_TIMESTAMP",
+            "resource": "log:app-events",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AU-8",
+        "expected_page": 73,
+        "notes": "registro de auditoria sin timestamp -> Time Stamps",
+    },
+    {
+        "id": "eval-07",
+        "event": {
+            "eventId": "evt-107",
+            "userId": "auditor1",
+            "action": "AUDIT_LOG_REVIEW_OVERDUE",
+            "resource": "log:system-audit",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AU-6",
+        "expected_page": 71,
+        "notes": "logs sin revisar hace mas de una semana -> Audit Record Review, Analysis, and Reporting",
+    },
+    {
+        "id": "eval-08",
+        "event": {
+            "eventId": "evt-108",
+            "userId": "svc-logger",
+            "action": "AUDIT_STORAGE_NEAR_CAPACITY",
+            "resource": "log:system-audit",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AU-4",
+        "expected_page": 70,
+        "notes": "almacenamiento de audit logs cerca del limite -> Audit Log Storage Capacity",
+    },
+    {
+        "id": "eval-09",
+        "event": {
+            "eventId": "evt-109",
+            "userId": "unknown",
+            "action": "AUDIT_LOG_UNAUTHORIZED_MODIFICATION",
+            "resource": "log:system-audit",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "AU-9",
+        "expected_page": 73,
+        "notes": "modificacion no autorizada de audit logs -> Protection of Audit Information",
+    },
+    {
+        "id": "eval-10",
+        "event": {
+            "eventId": "evt-110",
+            "userId": "newuser1",
+            "action": "SYSTEM_ACCESS_GRANTED_NO_UNIQUE_ID",
+            "resource": "system:cad",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "IA-2",
+        "expected_page": 114,
+        "notes": "acceso otorgado sin identificacion unica -> Identification and Authentication (Organizational Users)",
+    },
+    {
+        "id": "eval-11",
+        "event": {
+            "eventId": "evt-111",
+            "userId": "jdoe",
+            "action": "PASSWORD_REUSED_AFTER_EXPIRATION",
+            "resource": "system:cad",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "IA-5",
+        "expected_page": 118,
+        "notes": "reuso de autenticador vencido -> Authenticator Management",
+    },
+    {
+        "id": "eval-12",
+        "event": {
+            "eventId": "evt-112",
+            "userId": "helpdesk1",
+            "action": "SECURITY_INCIDENT_REPORTED",
+            "resource": "ticket:INC-4521",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "IR-6",
+        "expected_page": 192,
+        "notes": "incidente reportado por personal -> Incident Reporting",
+    },
+    {
+        "id": "eval-13",
+        "event": {
+            "eventId": "evt-113",
+            "userId": "itstaff1",
+            "action": "MEDIA_DISPOSED_WITHOUT_SANITIZATION",
+            "resource": "media:usb-22",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "MP-6",
+        "expected_page": 204,
+        "notes": "disposicion de medio sin sanitizar -> Media Sanitization",
+    },
+    {
+        "id": "eval-14",
+        "event": {
+            "eventId": "evt-114",
+            "userId": "hr1",
+            "action": "ACCESS_GRANTED_BEFORE_BACKGROUND_CHECK",
+            "resource": "user:newhire1",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "PS-3",
+        "expected_page": 226,
+        "notes": "acceso otorgado antes de completar el screening -> Personnel Screening",
+    },
+    {
+        "id": "eval-15",
+        "event": {
+            "eventId": "evt-115",
+            "userId": "secops1",
+            "action": "VULNERABILITY_SCAN_OVERDUE",
+            "resource": "system:prod-db",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "RA-5",
+        "expected_page": 236,
+        "notes": "scan de vulnerabilidades vencido (>30 dias) -> Vulnerability Monitoring and Scanning",
+    },
+    {
+        "id": "eval-16",
+        "event": {
+            "eventId": "evt-116",
+            "userId": "svc-transfer",
+            "action": "DATA_TRANSMITTED_UNENCRYPTED",
+            "resource": "network:branch-link",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "SC-8",
+        "expected_page": 261,
+        "notes": "transmision de datos sin cifrado -> Transmission Confidentiality and Integrity",
+    },
+    {
+        "id": "eval-17",
+        "event": {
+            "eventId": "evt-117",
+            "userId": "svc-av",
+            "action": "MALICIOUS_CODE_DETECTED",
+            "resource": "endpoint:ws-17",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "SI-3",
+        "expected_page": 273,
+        "notes": "alerta de antivirus -> Malicious Code Protection",
+    },
+    {
+        "id": "eval-18",
+        "event": {
+            "eventId": "evt-118",
+            "userId": "secops1",
+            "action": "ANOMALOUS_BEHAVIOR_NO_ALERT_GENERATED",
+            "resource": "system:prod-db",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "SI-4",
+        "expected_page": 275,
+        "notes": "comportamiento anomalo sin alerta -> System Monitoring",
+    },
+    {
+        "id": "eval-19",
+        "event": {
+            "eventId": "evt-119",
+            "userId": "itstaff1",
+            "action": "CONFIG_CHANGE_OUTSIDE_BASELINE",
+            "resource": "system:firewall-1",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "CM-6",
+        "expected_page": 92,
+        "notes": "cambio de configuracion fuera del baseline aprobado -> Configuration Settings",
+    },
+    {
+        "id": "eval-20",
+        "event": {
+            "eventId": "evt-120",
+            "userId": "svc-backup",
+            "action": "BACKUP_JOB_FAILED",
+            "resource": "system:prod-db",
+            "timestamp": 1752400000000,
+        },
+        "expected_control": "CP-9",
+        "expected_page": 110,
+        "notes": "job de backup fallido / no ejecutado -> System Backup",
+    },
+]
