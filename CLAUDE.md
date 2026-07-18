@@ -47,6 +47,7 @@ En el borde exacto entre dos secciones/controles consecutivos, la asignación pu
 - [x] README — hecho.
 - [x] Agente (`create_agent` de LangChain + `search_cjis_policy` como tool) — hecho, ver `agent.py`.
 - [x] Eval set (20 casos manuales) — hecho, ver `eval_set.py` (casos) y `eval.py` (runner). Página/control de cada caso verificado leyendo el PDF fuente directamente, no derivado de la metadata de `ingest.py`. Hit@5 actual: 25% (5/20) — ver hallazgo en el bug log de abajo.
+- [ ] Mejorar `_describe_event_for_search` (`check_event.py`) — pendiente. Causa raíz del Hit@5 bajo, documentada arriba en "Limitación conocida".
 
 ## System prompt de referencia para el agente (cuando se implemente)
 
