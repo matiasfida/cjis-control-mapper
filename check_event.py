@@ -12,8 +12,53 @@ def _normalize_action(action: str) -> str:
     return " ".join(spaced.split()).lower()
 
 
+# Sinónimos por palabra suelta (no por acción completa) para acercar el vocabulario técnico
+# del action code al vocabulario de prosa real de la política. Deliberadamente a nivel de
+# palabra y no de "acción conocida -> control esperado": mapear la acción completa sería
+# hardcodear la respuesta que el eval set espera, no arreglar el retrieval. Se agrega texto
+# (no se reemplaza) para no perder información si la palabra ya matchea bien sola.
+# Fuente de las frases: prosa real de la política, no adivinada (ver hallazgo Hit@5 bajo en
+# CLAUDE.md — el problema era ruido, no que falte vocabulario en el índice).
+_SYNONYM_EXPANSIONS = {
+    "failed": "unsuccessful failure",
+    "login": "logon authentication attempt",
+    "idle": "inactive inactivity device lock session lock",
+    "timestamp": "time stamp",
+    "timeout": "expiration expired",
+    "logout": "session termination",
+    "remote": "remote access",
+    "unauthorized": "illegitimate improper access",
+    "modification": "alteration deletion",
+    "missing": "absent",
+    "overdue": "past due late",
+    "granted": "provisioned authorized",
+    "reused": "reuse",
+    "expiration": "expired",
+    "disposed": "disposal",
+    "sanitization": "sanitize",
+    "background": "screening investigation",
+    "unencrypted": "without encryption plaintext",
+    "malicious": "malware antivirus",
+    "detected": "detection",
+    "anomalous": "abnormal unusual behavior",
+    "baseline": "approved configuration settings",
+    "capacity": "storage limit",
+    "account": "user account",
+    "review": "analysis reporting",
+    "scan": "scanning monitoring",
+    "transmitted": "transmission",
+    "created": "creation establishment",
+}
+
+
+def _expand_synonyms(normalized_action: str) -> str:
+    words = normalized_action.split()
+    extra = [_SYNONYM_EXPANSIONS[w] for w in words if w in _SYNONYM_EXPANSIONS]
+    return " ".join([normalized_action] + extra)
+
+
 def _describe_event_for_search(event: dict) -> str:
-    parts = [f"audit log event: {_normalize_action(event.get('action', ''))}"]
+    parts = [_expand_synonyms(_normalize_action(event.get("action", "")))]
     if event.get("resource"):
         parts.append(f"resource: {event['resource']}")
     return ". ".join(parts)
