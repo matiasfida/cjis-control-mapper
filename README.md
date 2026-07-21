@@ -94,4 +94,4 @@ En el borde exacto entre dos secciones/controles consecutivos, la asignación de
 - [x] Retrieval tool (`retrieval.py`)
 - [x] Chequeo de evento sin LLM (`check_event.py`)
 - [x] Agente conversacional (`agent.py`)
-- [ ] Eval set (15-20 casos manuales)
+- [x] Eval set (20 casos manuales, `eval_set.py` + `eval.py`) — Hit@5: 80% (16/20), MRR: 0.65
